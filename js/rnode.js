@@ -313,31 +313,47 @@ class RNode {
     }
 
     async detect() {
-        return new Promise(async (resolve) => {
-            try {
 
-                // timeout after provided millis
+        // Some nRF52 RNodes (e.g. the Seeed SenseCAP T1000-E) need a second or two
+        // after connecting/booting before they answer KISS, and the very first probe
+        // is frequently missed. A single 2s attempt then reports a perfectly good
+        // device as "not an RNode" (especially right after a flash/reset). So retry
+        // the detect across the boot window, sending a fresh CMD_DETECT each time.
+        const attempts = 15;       // ~15 x 700ms ~= 10s total
+        const perAttemptMs = 700;
+
+        for(let attempt = 0; attempt < attempts; attempt++){
+
+            const isRnode = await new Promise((resolve) => {
+
+                // give up on this attempt after perAttemptMs and clear the pending callback
                 const timeout = setTimeout(() => {
+                    delete this.callbacks[this.CMD_DETECT];
                     resolve(false);
-                }, 2000);
+                }, perAttemptMs);
 
-                // detect rnode
-                const response = await this.sendCommand(this.CMD_DETECT, [
+                // resolve as soon as a detect response arrives
+                this.callbacks[this.CMD_DETECT] = (response) => {
+                    clearTimeout(timeout);
+                    const [ responseByte ] = response;
+                    resolve(responseByte === this.DETECT_RESP);
+                };
+
+                // send detect request (ignore transient write errors, we'll retry)
+                this.sendKissCommand([
+                    this.CMD_DETECT,
                     this.DETECT_REQ,
-                ]);
+                ]).catch(() => {});
 
-                // we no longer want to timeout
-                clearTimeout(timeout);
+            });
 
-                // device is an rnode if response is as expected
-                const [ responseByte ] = response;
-                const isRnode = responseByte === this.DETECT_RESP;
-                resolve(isRnode);
-
-            } catch(e) {
-                resolve(false);
+            if(isRnode){
+                return true;
             }
-        });
+
+        }
+
+        return false;
 
     }
 
