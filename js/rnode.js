@@ -825,6 +825,9 @@ class ROM {
     static MODEL_C6       = 0xC6
     static MODEL_C7       = 0xC7
 
+    static PRODUCT_T1000E = 0x1E
+    static MODEL_B5       = 0xB5
+
     static PRODUCT_TBEAM  = 0xE0
     static MODEL_E4       = 0xE4
     static MODEL_E9       = 0xE9

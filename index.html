@@ -91,6 +91,11 @@
                 <input ref="file" type="file"/>
             </div>
 
+            <div v-if="selectedProduct?.firmware_url" class="mb-2 text-sm text-gray-600">
+                Firmware for <b>{{ selectedProduct.name }}</b> is bundled — just click Flash and leave the file
+                empty to download &amp; flash it automatically, or choose your own .zip above to override.
+            </div>
+
             <div v-if="!isFlashing" class="space-x-1">
                 <button @click="flash" :disabled="isFlashing" class="border border-gray-500 px-2 bg-gray-100 hover:bg-gray-200 rounded">
                     Flash Now
@@ -838,6 +843,20 @@
                         firmware_filename: "rnode_firmware_rak4631.zip",
                     },
                     {
+                        name: "Seeed SenseCAP T1000-E",
+                        id: ROM.PRODUCT_T1000E,
+                        platform: ROM.PLATFORM_NRF52,
+                        models: [
+                            {
+                                id: ROM.MODEL_B5,
+                                name: "863 - 928 MHz (LR1110)",
+                            },
+                        ],
+                        firmware_filename: "rnode_firmware_t1000e.zip",
+                        // Bundled firmware is fetched automatically when no file is chosen.
+                        firmware_url: "https://github.com/idan2025/Rnode_Firmware/releases/download/v1.0-t1000e/rnode_firmware_t1000e.zip",
+                    },
+                    {
                         name: "RNode",
                         id: ROM.PRODUCT_RNODE,
                         platform: ROM.PLATFORM_ESP32,
@@ -1022,11 +1041,26 @@
             },
             async flashNrf52() {
 
-                // ensure firmware file selected
-                const file = this.$refs["file"].files[0];
+                // Firmware source: a manually-selected file takes priority; otherwise
+                // fall back to the firmware bundled with the selected device (firmware_url),
+                // downloaded automatically so the user doesn't need to find the .zip.
+                let file = this.$refs["file"].files[0];
                 if(!file){
-                    alert("Select a firmware file first");
-                    return;
+                    const firmwareUrl = this.selectedProduct?.firmware_url;
+                    if(!firmwareUrl){
+                        alert("Select a firmware file first");
+                        return;
+                    }
+                    try {
+                        const response = await fetch(firmwareUrl);
+                        if(!response.ok){
+                            throw new Error("HTTP " + response.status);
+                        }
+                        file = await response.blob();
+                    } catch(e){
+                        alert("Could not download bundled firmware for " + this.selectedProduct.name + ": " + e);
+                        return;
+                    }
                 }
 
                 // ask for serial port
