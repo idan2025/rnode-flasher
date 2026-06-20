@@ -1,6 +1,12 @@
 # RNode Flasher
 
-A _work-in-progress_ web based firmware flasher for [Reticulum](https://github.com/markqvist/Reticulum) / [RNode_Firmware](https://github.com/markqvist/RNode_Firmware).
+> **Fork** adding **Seeed SenseCAP T1000-E** (nRF52840 + Semtech **LR1110**) support — pick it
+> from the device list and the [T1000-E firmware](https://github.com/idan2025/Rnode_Firmware)
+> downloads & flashes automatically. Live: **https://idan2025.github.io/rnode-flasher/**
+>
+> <sub>Based on the original [rnode-flasher](https://github.com/liamcottle/rnode-flasher) by [Liam Cottle](https://liamcottle.com).</sub>
+
+A web based firmware flasher for [Reticulum](https://github.com/markqvist/Reticulum) / [RNode_Firmware](https://github.com/markqvist/RNode_Firmware).
 
 - It is written in javascript and uses the [Web Serial APIs](https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API).
 - It supports putting relevant devices into DFU mode.
@@ -26,7 +32,7 @@ There was an existing package called [pc-nrf-dfu-js](https://github.com/NordicSe
 
 ## How to use it?
 
-- Open https://liamcottle.github.io/rnode-flasher/ in your web browser.
+- Open https://idan2025.github.io/rnode-flasher/ in your web browser.
 - Select your device.
 - Put your device into DFU mode (for nRF52 boards)
 - Select a firmware file and click flash.
